@@ -1,0 +1,37 @@
+############################
+# Personal / sensitive data
+############################
+
+# FIT files and ZIP exports
+*.fit
+*.FIT
+*.fit.zip
+*.FIT.zip
+
+# Specific folders containing FIT files
+data/raw/garmin_fit_archive/
+data/raw/garmin_fit_inbox/
+
+# Databases (do not commit actual DBs)
+*.db
+*.sqlite
+*.sqlite3
+*.db3
+
+# Specific app database
+db/training.db
+
+# Database backups / dumps
+*.sql
+*.sql.gz
+*.dump
+*.bak
+
+############################
+# Python tooling
+############################
+
+# Per-project virtual environment
+.venv/
+venv/
+
