@@ -55,6 +55,19 @@ def command_rebuild():
     log("Derived metrics rebuilt.")
 
 
+def command_ingest_and_rebuild():
+    log("Starting FIT ingestion...")
+    result = ingest_all_fits(DB_PATH)
+    log(f"Processed {result['processed']} new FIT files, skipped {result['skipped']}.")
+    log("Rebuilding derived metrics...")
+    conn = get_connection(DB_PATH)
+    try:
+        rebuild_load_model(conn)
+    finally:
+        conn.close()
+    log("Done.")
+
+
 def command_all():
     command_init_db()
     command_fit_ingest()
@@ -398,6 +411,7 @@ def main():
             "init-db",
             "fit-ingest",
             "rebuild-derived",
+            "ingest-and-rebuild",
             "add-hr-zones",
             "update-physiology",
             "seed-hr-zones",
@@ -416,6 +430,8 @@ def main():
         command_fit_ingest()
     elif args.command == "rebuild-derived":
         command_rebuild()
+    elif args.command == "ingest-and-rebuild":
+        command_ingest_and_rebuild()
     elif args.command == "seed-hr-zones":
         conn = get_connection(DB_PATH)
         set_initial_hr_profile(conn)

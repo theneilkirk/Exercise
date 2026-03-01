@@ -71,17 +71,27 @@ Follow the printed instructions after `nuke` completes. Typically you will:
 2. Re-ingest FIT files.
 3. (Optionally) Rebuild derived metrics.
 
-### Full rebuild (convenience)
+### Ingest and rebuild (everyday workflow)
 
-Runs a full deterministic rebuild of all derived training-load metrics from the current database contents:
+Ingests new FIT files from the inbox, then rebuilds all derived metrics in one step:
+
+```powershell
+python .\scripts\cli.py ingest-and-rebuild
+```
+
+### Rebuild derived metrics only
+
+Recomputes all derived training-load metrics from the current database contents **without re-reading FIT files**. Useful after adjusting physiology or HR zones, or after changing load model logic:
 
 ```powershell
 python .\scripts\cli.py rebuild-derived
 ```
 
-This command **does not re-read FIT files**; it only recomputes all derived training-load metrics from the current contents of the database: `daily_metrics` (load points, CTL, ATL, form, AC ratio, CTL season best, ramp rate, Foster monotony, Foster strain) and `activity_metrics.load_points`. It is safe to run any time you adjust physiology/zones or change the load model logic and want the derived tables to be refreshed.
+Recomputes: `daily_metrics` (load points, CTL, ATL, form, AC ratio, CTL season best, ramp rate, Foster monotony, Foster strain) and `activity_metrics.load_points`.
 
-If you prefer a one-shot convenience command that chains the main steps (reset, seed, ingest, rebuild), use:
+### Full rebuild (nuclear + one-shot convenience)
+
+Chains the full reset sequence (nuke → seed → ingest → rebuild):
 
 ```powershell
 python .\scripts\cli.py full-rebuild

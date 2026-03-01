@@ -45,6 +45,14 @@ Copy `.fit` or `.zip` files into:
 
 ### 2.2 Run ingest
 
+For the common case — ingest new files and immediately update derived metrics — use:
+
+```powershell
+python .\scripts\cli.py ingest-and-rebuild
+```
+
+If you want to ingest without rebuilding (e.g. you plan to do a batch of physiology updates first), run ingest separately:
+
 ```powershell
 python .\scripts\cli.py fit-ingest
 ```

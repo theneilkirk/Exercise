@@ -6,6 +6,7 @@ Local, offline-first training intelligence engine that ingests Garmin `.fit` fil
 
 - **Setup / administration**: install, configure, and maintain the project (virtualenv, dependencies, folders, backups, destructive operations). See `SETUP.md`.
 - **Everyday data management**: ingest FIT files, manage HR zones, and rebuild derived metrics as a user. See `DATA_MANAGEMENT.md`.
+- **Methodology**: full derivation of every metric (TRIMP, HR zones, ATL/CTL, Form, AC ratio, ramp rate, Foster monotony and strain) with primary references. See `METHODOLOGY.md`.
 
 ## Design principles
 
@@ -71,8 +72,10 @@ python .\scripts\cli.py seed-hr-zones
 Drop files into `data/raw/garmin_fit_inbox/` then run:
 
 ```powershell
-python .\scripts\cli.py fit-ingest
+python .\scripts\cli.py ingest-and-rebuild
 ```
+
+This ingests new files and immediately rebuilds all derived metrics in one step. If you want to ingest without rebuilding (e.g. you plan to update physiology first), use `fit-ingest` followed by `rebuild-derived` separately.
 
 What ingest currently does:
 
