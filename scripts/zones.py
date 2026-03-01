@@ -1,46 +1,3 @@
-from datetime import datetime
-
-
-def get_lthr(conn, activity_date):
-    cur = conn.cursor()
-    cur.execute("""
-    SELECT value
-    FROM physiology_history
-    WHERE metric = 'lthr_bpm'
-      AND effective_from_date <= ?
-    ORDER BY effective_from_date DESC
-    LIMIT 1
-    """, (activity_date,))
-    row = cur.fetchone()
-    return row[0] if row else None
-
-
-def get_hr_zones(conn, activity_date, sport):
-    cur = conn.cursor()
-
-    cur.execute("""
-    SELECT zone, lower_pct, upper_pct
-    FROM zones_hr_history
-    WHERE sport = ?
-      AND effective_from_date <= ?
-    ORDER BY effective_from_date DESC
-    """, (sport, activity_date))
-
-    rows = cur.fetchall()
-    if rows:
-        return rows
-
-    # fallback to sport='any'
-    cur.execute("""
-    SELECT zone, lower_pct, upper_pct
-    FROM zones_hr_history
-    WHERE sport = 'any'
-      AND effective_from_date <= ?
-    ORDER BY effective_from_date DESC
-    """, (activity_date,))
-
-    return cur.fetchall()
-
 def get_physiology_metric(conn, activity_date: str, metric: str):
     """
     Returns the most recent value for a metric with effective_from_date <= activity_date.
@@ -91,6 +48,18 @@ def get_hr_zones(conn, activity_date: str, sport: str):
         SELECT zone, lower_pct, upper_pct
         FROM zones_hr_history
         WHERE sport = 'any'
+          AND effective_from_date <= ?
+        ORDER BY effective_from_date DESC
+    """, (activity_date,))
+    rows = cur.fetchall()
+    if rows:
+        return rows
+
+    # Final fallback: use 'running' zones if available for this date
+    cur.execute("""
+        SELECT zone, lower_pct, upper_pct
+        FROM zones_hr_history
+        WHERE sport = 'running'
           AND effective_from_date <= ?
         ORDER BY effective_from_date DESC
     """, (activity_date,))

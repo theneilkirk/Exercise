@@ -9,8 +9,16 @@
 *.FIT.zip
 
 # Specific folders containing FIT files
-data/raw/garmin_fit_archive/
-data/raw/garmin_fit_inbox/
+# Ignore folder contents, but keep the directory structure in Git via `.gitkeep`.
+data/raw/garmin_fit_archive/*
+!data/raw/garmin_fit_archive/.gitkeep
+data/raw/garmin_fit_inbox/*
+!data/raw/garmin_fit_inbox/.gitkeep
+
+# Workspace / extraction temp (same pattern: keep `.gitkeep`)
+data/work/*
+!data/work/.gitkeep
+data/work/tmp_extract/*
 
 # Databases (do not commit actual DBs)
 *.db

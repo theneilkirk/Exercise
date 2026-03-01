@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(sqlite3 \"c:/Users/micro/Nextcloud/Library/Exercise/db/training.db\" \"SELECT date, load_points, ctl, atl, form FROM daily_metrics ORDER BY date;\")",
+      "Bash(python -c \"import sqlite3; print\\(''sqlite3 available''\\)\")",
+      "Bash(python:*)",
+      "Bash(.venv/Scripts/python scripts/cli.py rebuild-derived)",
+      "Bash(.venv/Scripts/python -c \":*)"
+    ]
+  }
+}

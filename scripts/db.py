@@ -62,7 +62,8 @@ def init_db(db_path: Path):
             ac_ratio REAL,
             ramp_rate REAL,
             monotony REAL,
-            strain REAL
+            strain REAL,
+            ctl_season_best REAL
         );
     """)
     

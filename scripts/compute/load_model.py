@@ -1,5 +1,7 @@
+from collections import deque
 from datetime import datetime, timedelta
 import sqlite3
+import statistics
 
 # ============================
 # Parameterised Model Constants
@@ -84,9 +86,12 @@ def rebuild_load_model(conn):
     atl_alpha = ewma_alpha(ATL_DAYS)
     ctl_alpha = ewma_alpha(CTL_DAYS)
 
-    atl = None
-    ctl = None
+    atl = 0.0
+    ctl = 0.0
     season_best_ctl = 0
+
+    load_window = deque(maxlen=7)   # last 7 daily loads
+    ctl_history = deque(maxlen=8)   # last 8 CTL values (to compute 7-day change)
 
     rows_to_insert = []
 
@@ -94,12 +99,8 @@ def rebuild_load_model(conn):
 
         load = daily_load_lookup.get(date, 0.0)
 
-        if atl is None:
-            atl = load
-            ctl = load
-        else:
-            atl = atl + atl_alpha * (load - atl)
-            ctl = ctl + ctl_alpha * (load - ctl)
+        atl = atl + atl_alpha * (load - atl)
+        ctl = ctl + ctl_alpha * (load - ctl)
 
         form = ctl - atl
 
@@ -109,6 +110,23 @@ def rebuild_load_model(conn):
 
         season_best_ctl = max(season_best_ctl, ctl)
 
+        load_window.append(load)
+        ctl_history.append(ctl)
+
+        # ramp_rate: CTL change over 7 days (needs 8 data points)
+        ramp_rate = (ctl - ctl_history[0]) if len(ctl_history) == 8 else None
+
+        # monotony: mean / population-stdev of last 7 loads (Foster)
+        if len(load_window) >= 2:
+            stdev = statistics.pstdev(load_window)
+            mean_load = statistics.mean(load_window)
+            monotony = (mean_load / stdev) if stdev > 0 else None
+        else:
+            monotony = None
+
+        # strain: 7-day total × monotony (Foster)
+        strain = (sum(load_window) * monotony) if monotony is not None else None
+
         rows_to_insert.append((
             date.strftime(DATE_FORMAT),
             load,
@@ -116,7 +134,10 @@ def rebuild_load_model(conn):
             atl,
             form,
             ac_ratio,
-            season_best_ctl
+            season_best_ctl,
+            ramp_rate,
+            monotony,
+            strain,
         ))
 
     cursor = conn.cursor()
@@ -131,9 +152,12 @@ def rebuild_load_model(conn):
             atl,
             form,
             ac_ratio,
-            ctl_season_best
+            ctl_season_best,
+            ramp_rate,
+            monotony,
+            strain
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows_to_insert)
 
     conn.commit()

@@ -125,10 +125,10 @@ def extract_activity_data(conn, fit_path: Path):
     # --------------------------------------------------
     zone_seconds = defaultdict(int)
 
-    resolved_sport = (sport or "unknown").lower()
+    resolved_sport = str(sport or "unknown").lower()
     # your zones are seeded as "running"; if Garmin sport strings differ, we still pass the raw sport
     lthr = get_lthr(conn, activity_date)
-    zones = get_hr_zones(conn, activity_date, sport or "running")
+    zones = get_hr_zones(conn, activity_date, str(sport) if sport is not None else "running")
 
     if lthr and zones and record_rows:
         last_ts = None
@@ -196,7 +196,7 @@ def extract_activity_data(conn, fit_path: Path):
 
     return {
         "start_time_utc": start_time_utc.isoformat(),
-        "sport": sport or "unknown",
+        "sport": str(sport) if sport is not None else "unknown",
         "duration_s": total_duration,
         "distance_m": total_distance,
         "elev_gain_m": total_elev_gain,
