@@ -54,17 +54,24 @@ def init_db(db_path: Path):
     # Daily metrics table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS daily_metrics (
-            date TEXT PRIMARY KEY,
-            load_points REAL,
-            ctl REAL,
-            atl REAL,
-            form REAL,
-            ac_ratio REAL,
-            ramp_rate REAL,
-            monotony REAL,
-            strain REAL,
-            ctl_season_best REAL
+            date            TEXT    NOT NULL,
+            sport           TEXT    NOT NULL,
+            load_points     REAL,
+            ctl             REAL,
+            atl             REAL,
+            form            REAL,
+            ac_ratio        REAL,
+            ramp_rate       REAL,
+            monotony        REAL,
+            strain          REAL,
+            ctl_season_best REAL,
+            PRIMARY KEY (date, sport)
         );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_daily_metrics_sport_date
+        ON daily_metrics(sport, date);
     """)
     
     # Observed physiology metrics from device (time-aware)

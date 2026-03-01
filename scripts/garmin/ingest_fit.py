@@ -25,6 +25,15 @@ TRIMP_A = 0.64
 TRIMP_B = 1.92
 
 
+# -----------------------------
+# Garmin numeric sport code map
+# -----------------------------
+# Add new mappings here as needed (value is always a string from fitparse).
+SPORT_CODE_MAP = {
+    "64": "racket",
+}
+
+
 def get_activity_id_from_filename(path: Path):
     name = path.stem
     if name.isdigit():
@@ -196,7 +205,7 @@ def extract_activity_data(conn, fit_path: Path):
 
     return {
         "start_time_utc": start_time_utc.isoformat(),
-        "sport": str(sport) if sport is not None else "unknown",
+        "sport": SPORT_CODE_MAP.get(str(sport), str(sport)) if sport is not None else "unknown",
         "duration_s": total_duration,
         "distance_m": total_distance,
         "elev_gain_m": total_elev_gain,

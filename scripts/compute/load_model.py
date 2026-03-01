@@ -69,6 +69,64 @@ def get_daily_loads(conn):
     }
 
 
+def get_daily_loads_by_sport(conn):
+    """Returns {sport: {date: load_points}} for all sports with computed load."""
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.sport,
+               date(a.start_time_utc) AS activity_date,
+               SUM(m.load_points)
+        FROM activities a
+        JOIN activity_metrics m ON a.activity_id = m.activity_id
+        WHERE m.load_points IS NOT NULL
+        GROUP BY a.sport, activity_date
+    """)
+    result = {}
+    for sport, date_str, load in cursor.fetchall():
+        parsed = datetime.strptime(date_str, DATE_FORMAT).date()
+        result.setdefault(sport, {})[parsed] = load
+    return result
+
+
+def _compute_stream(date_series, daily_load_lookup):
+    """
+    Runs the EWMA loop over date_series using the given load lookup.
+    Returns list of tuples: (date_str, load, ctl, atl, form, ac_ratio,
+                             ctl_season_best, ramp_rate, monotony, strain)
+    """
+    atl_alpha = ewma_alpha(ATL_DAYS)
+    ctl_alpha = ewma_alpha(CTL_DAYS)
+    atl = 0.0
+    ctl = 0.0
+    season_best_ctl = 0
+    load_window = deque(maxlen=7)
+    ctl_history  = deque(maxlen=8)
+    rows = []
+
+    for date in date_series:
+        load = daily_load_lookup.get(date, 0.0)
+        atl = atl + atl_alpha * (load - atl)
+        ctl = ctl + ctl_alpha * (load - ctl)
+        form = ctl - atl
+        ac_ratio = (atl / ctl) if ctl > 0 else None
+        season_best_ctl = max(season_best_ctl, ctl)
+        load_window.append(load)
+        ctl_history.append(ctl)
+        ramp_rate = (ctl - ctl_history[0]) if len(ctl_history) == 8 else None
+        if len(load_window) >= 2:
+            stdev = statistics.pstdev(load_window)
+            mean_load = statistics.mean(load_window)
+            monotony = (mean_load / stdev) if stdev > 0 else None
+        else:
+            monotony = None
+        strain = (sum(load_window) * monotony) if monotony is not None else None
+        rows.append((
+            date.strftime(DATE_FORMAT), load, ctl, atl, form, ac_ratio,
+            season_best_ctl, ramp_rate, monotony, strain,
+        ))
+    return rows
+
+
 # ============================
 # Core Computation
 # ============================
@@ -80,86 +138,29 @@ def rebuild_load_model(conn):
         print("No activities found. Skipping load model.")
         return
 
-    daily_load_lookup = get_daily_loads(conn)
-    date_series = build_continuous_dates(start_date, end_date)
+    date_series     = build_continuous_dates(start_date, end_date)
+    all_load_lookup = get_daily_loads(conn)
+    per_sport_loads = get_daily_loads_by_sport(conn)
 
-    atl_alpha = ewma_alpha(ATL_DAYS)
-    ctl_alpha = ewma_alpha(CTL_DAYS)
+    all_rows = []
 
-    atl = 0.0
-    ctl = 0.0
-    season_best_ctl = 0
+    # 'all' aggregate — cross-sport load, identical to previous behaviour
+    for row in _compute_stream(date_series, all_load_lookup):
+        all_rows.append(('all',) + row)
 
-    load_window = deque(maxlen=7)   # last 7 daily loads
-    ctl_history = deque(maxlen=8)   # last 8 CTL values (to compute 7-day change)
-
-    rows_to_insert = []
-
-    for date in date_series:
-
-        load = daily_load_lookup.get(date, 0.0)
-
-        atl = atl + atl_alpha * (load - atl)
-        ctl = ctl + ctl_alpha * (load - ctl)
-
-        form = ctl - atl
-
-        ac_ratio = None
-        if ctl > 0:
-            ac_ratio = atl / ctl
-
-        season_best_ctl = max(season_best_ctl, ctl)
-
-        load_window.append(load)
-        ctl_history.append(ctl)
-
-        # ramp_rate: CTL change over 7 days (needs 8 data points)
-        ramp_rate = (ctl - ctl_history[0]) if len(ctl_history) == 8 else None
-
-        # monotony: mean / population-stdev of last 7 loads (Foster)
-        if len(load_window) >= 2:
-            stdev = statistics.pstdev(load_window)
-            mean_load = statistics.mean(load_window)
-            monotony = (mean_load / stdev) if stdev > 0 else None
-        else:
-            monotony = None
-
-        # strain: 7-day total × monotony (Foster)
-        strain = (sum(load_window) * monotony) if monotony is not None else None
-
-        rows_to_insert.append((
-            date.strftime(DATE_FORMAT),
-            load,
-            ctl,
-            atl,
-            form,
-            ac_ratio,
-            season_best_ctl,
-            ramp_rate,
-            monotony,
-            strain,
-        ))
+    # per-sport streams — EWMA starts from global start_date; load=0 on days with no activity
+    for sport, sport_load_lookup in sorted(per_sport_loads.items()):
+        for row in _compute_stream(date_series, sport_load_lookup):
+            all_rows.append((sport,) + row)
 
     cursor = conn.cursor()
-
     cursor.execute("DELETE FROM daily_metrics")
-
     cursor.executemany("""
         INSERT INTO daily_metrics (
-            date,
-            load_points,
-            ctl,
-            atl,
-            form,
-            ac_ratio,
-            ctl_season_best,
-            ramp_rate,
-            monotony,
-            strain
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, rows_to_insert)
-
+            sport, date, load_points, ctl, atl, form,
+            ac_ratio, ctl_season_best, ramp_rate, monotony, strain
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, all_rows)
     conn.commit()
 
-    print("Load model rebuild complete.")
+    print(f"Load model rebuild complete: {len(per_sport_loads)} sport(s) + 'all', {len(all_rows)} rows.")

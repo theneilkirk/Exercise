@@ -6,7 +6,8 @@
       "Bash(python -c \"import sqlite3; print\\(''sqlite3 available''\\)\")",
       "Bash(python:*)",
       "Bash(.venv/Scripts/python scripts/cli.py rebuild-derived)",
-      "Bash(.venv/Scripts/python -c \":*)"
+      "Bash(.venv/Scripts/python -c \":*)",
+      "Bash(./.venv/Scripts/python.exe:*)"
     ]
   }
 }
