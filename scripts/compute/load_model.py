@@ -60,6 +60,7 @@ def get_daily_loads(conn):
         FROM activities a
         JOIN activity_metrics m
           ON a.activity_id = m.activity_id
+        WHERE m.load_points IS NOT NULL
         GROUP BY activity_date
     """)
 
@@ -104,7 +105,7 @@ def _compute_stream(date_series, daily_load_lookup):
     rows = []
 
     for date in date_series:
-        load = daily_load_lookup.get(date, 0.0)
+        load = daily_load_lookup.get(date) or 0.0
         atl = atl + atl_alpha * (load - atl)
         ctl = ctl + ctl_alpha * (load - ctl)
         form = ctl - atl

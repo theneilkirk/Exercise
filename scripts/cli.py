@@ -8,6 +8,7 @@ from db import init_db
 from db import get_connection
 from garmin.ingest_fit import ingest_all_fits
 from compute.load_model import rebuild_load_model
+from compute.export import build_export
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -234,6 +235,38 @@ def command_update_physiology():
         conn.close()
 
 
+def command_export():
+    """Export training data to a Markdown file for AI-assisted coaching."""
+    import argparse as _ap
+    sub = _ap.ArgumentParser(prog="cli.py export")
+    sub.add_argument(
+        "--weeks", type=int, default=20,
+        help="Number of weeks of history to export (default: 20)",
+    )
+    sub.add_argument(
+        "--output", type=str, default=None,
+        help="Output file path (default: data/export/training_export_YYYYMMDD.md)",
+    )
+    sub_args = sub.parse_args(sys.argv[2:])
+
+    if sub_args.output:
+        out_path = Path(sub_args.output)
+    else:
+        today_str = datetime.now().strftime("%Y%m%d")
+        out_path = BASE_DIR / "data" / "export" / f"training_export_{today_str}.md"
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    conn = get_connection(DB_PATH)
+    try:
+        markdown = build_export(conn, weeks=sub_args.weeks)
+    finally:
+        conn.close()
+
+    out_path.write_text(markdown, encoding="utf-8")
+    log(f"Export written to {out_path} ({len(markdown):,} bytes)")
+
+
 def command_reset():
     """Wipe the database and move all archived FIT files back to the inbox."""
     print("WARNING: This will delete the database and move all archived FIT files back to the inbox.")
@@ -281,11 +314,13 @@ commands:
   update-physiology   record new HRmax/LTHR/HRrest with an effective date
   set-zones           add or update HR zone boundaries
   reset               wipe the database and restore archived FITs to inbox
+  export              export training data to Markdown for AI coaching
+                        [--weeks N] [--output PATH]
 """,
     )
     parser.add_argument(
         "command",
-        choices=["sync", "recalculate", "update-physiology", "set-zones", "reset"],
+        choices=["sync", "recalculate", "update-physiology", "set-zones", "reset", "export"],
         help=argparse.SUPPRESS,
     )
 
@@ -301,6 +336,8 @@ commands:
         command_update_physiology()
     elif args.command == "reset":
         command_reset()
+    elif args.command == "export":
+        command_export()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 def get_physiology_metric(conn, activity_date: str, metric: str):
     """
     Returns the most recent value for a metric with effective_from_date <= activity_date.
+    Falls back to the earliest known value for activities predating all physiology entries.
     activity_date: 'YYYY-MM-DD'
     """
     cur = conn.cursor()
@@ -12,6 +13,16 @@ def get_physiology_metric(conn, activity_date: str, metric: str):
         ORDER BY effective_from_date DESC
         LIMIT 1
     """, (metric, activity_date))
+    row = cur.fetchone()
+    if row:
+        return row[0]
+    cur.execute("""
+        SELECT value
+        FROM physiology_history
+        WHERE metric = ?
+        ORDER BY effective_from_date ASC
+        LIMIT 1
+    """, (metric,))
     row = cur.fetchone()
     return row[0] if row else None
 
