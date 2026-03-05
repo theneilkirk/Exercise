@@ -13,7 +13,7 @@ Theme file: `ultra-training-dark.json`
 | — | Theme | ✅ Done |
 | 1 | Status Today | ✅ Done |
 | 2 | Performance Management (PMC) | ✅ Done |
-| 3 | Weekly Load | 🔲 Pending |
+| 3 | Weekly Load | ✅ Done |
 | 4 | Zone Analysis | 🔲 Pending |
 | 5 | Activity Log | 🔲 Pending |
 | 6 | Physiology | 🔲 Pending (low priority) |
@@ -238,11 +238,65 @@ SWITCH(
 )
 ```
 
+### Table: `activity_metrics`
+
+```dax
+_m: Load 4W Current =
+VAR _start = TODAY() - 28
+RETURN
+CALCULATE(
+    SUM(activity_metrics[load_points]),
+    FILTER(ALL(activities), activities[Date] >= _start && activities[Date] <= TODAY())
+)
+```
+
+```dax
+_m: Load 4W Previous =
+VAR _start = TODAY() - 56
+VAR _end   = TODAY() - 29
+RETURN
+CALCULATE(
+    SUM(activity_metrics[load_points]),
+    FILTER(ALL(activities), activities[Date] >= _start && activities[Date] <= _end)
+)
+```
+
+```dax
+_m: Load 4W Change % =
+DIVIDE(
+    [_m: Load 4W Current] - [_m: Load 4W Previous],
+    [_m: Load 4W Previous]
+)
+```
+
+```dax
+_m: Avg Weekly Load (16W) =
+VAR _start     = TODAY() - 112
+VAR _totalLoad = CALCULATE(
+    SUM(activity_metrics[load_points]),
+    FILTER(ALL(activities), activities[Date] >= _start && activities[Date] <= TODAY())
+)
+RETURN DIVIDE(_totalLoad, 16)
+```
+
+```dax
+_m: Week Total Load =
+CALCULATE(
+    SUM(activity_metrics[load_points]),
+    ALL(activities[sport])
+)
+```
+
 ### Table: `activities`
 
 ```dax
 _m: Days Since Last Activity =
 INT(TODAY() - MAXX(ALL(activities), activities[Date]))
+```
+
+```dax
+_m: Weekly Hours =
+DIVIDE(SUM(activities[duration_s]), 3600)
 ```
 
 ### Calculated columns
@@ -262,6 +316,33 @@ IF(
     activities[distance_m] = 0,
     BLANK(),
     ROUND(activities[distance_m] / 1000, 2)
+)
+```
+
+**Table: `Dates`**
+
+```dax
+_c: In 16W Window = Dates[Date] >= TODAY() - 112
+```
+
+```dax
+-- Full Dates table definition (replace the calculated table):
+Dates =
+VAR minDate = MINX(
+    ALL(activities),
+    DATE(YEAR(activities[start_time_utc]),MONTH(activities[start_time_utc]),DAY(activities[start_time_utc]))
+)
+VAR maxDate = TODAY()
+RETURN
+ADDCOLUMNS(
+    CALENDAR(minDate,maxDate),
+    "Year",YEAR([Date]),
+    "Month Number",MONTH([Date]),
+    "Month",FORMAT([Date],"MMMM","en-GB"),
+    "Year-Month",FORMAT([Date],"YYYY-MM"),
+    "Week Number",WEEKNUM([Date]),
+    "Day",DAY([Date]),
+    "End of Week",[Date] + (7 - WEEKDAY([Date], 2))
 )
 ```
 
@@ -316,9 +397,42 @@ Secondary axis: min −60, max +40. Constant line at Form=0 (dashed, `#8B949E`).
 
 ---
 
-### Page 3 — Weekly Load 🔲
+### Page 3 — Weekly Load ✅
 
-Rolling load patterns by week and sport. *(Spec to be added when built.)*
+Rolling load patterns by week and sport. 16-week rolling window.
+
+| Visual | x | y | w | h | Notes |
+|---|---|---|---|---|---|
+| Title textbox | 16 | 16 | 800 | 36 | "Weekly Load", 18px bold |
+| Weekly combo chart | 16 | 60 | 1248 | 350 | Stacked columns by sport + hours line |
+| 4W Current Load card | 16 | 418 | 302 | 130 | `_m: Load 4W Current`, Theme color 7 |
+| 4W Previous Load card | 326 | 418 | 302 | 130 | `_m: Load 4W Previous`, Theme color 8 |
+| 4W Change % card | 16 | 556 | 302 | 148 | `_m: Load 4W Change %`, conditional colour |
+| Avg Weekly Load card | 326 | 556 | 302 | 148 | `_m: Avg Weekly Load (16W)`, Theme color 8 |
+| Sport donut (4W) | 640 | 418 | 624 | 286 | Filtered to 4-week window |
+
+**Weekly combo chart series:**
+
+| Role | Field | Notes |
+|---|---|---|
+| X-axis | `Dates[End of Week]` | Sunday end of each ISO week |
+| Columns (stacked) | `activity_metrics[load_points]` | Per sport segment |
+| Column legend | `activities[sport]` | Power Query maps training+fitness_equipment → Strength |
+| Line | `_m: Weekly Hours` | Secondary axis, near-white (`#E6EDF3`) |
+| Tooltip | `_m: Week Total Load` | Shows week total across all sports |
+
+**Visual-level filter:** `Dates[_c: In 16W Window]` = TRUE
+*(Relative date filters act on the axis field and exclude the current partial week since Sunday is in the future. Filter on the underlying date column instead.)*
+
+**Sport colours:**
+
+| Sport | Theme name |
+|---|---|
+| Running | Theme color 7 |
+| Walking | Theme color 6 |
+| Cycling | Theme color 2 |
+| Strength | Theme color 3 |
+| Racket | Theme color 8 |
 
 ---
 
@@ -350,3 +464,6 @@ LTHR, HRmax, resting HR trends over time. *(Spec to be added when built.)*
 | No target line on AC Ratio gauge | No meaningful single target value for ultra runners — depends on training phase. Colour zones alone are sufficient. |
 | `BLANK()` for zero distance | Strength/indoor activities have no GPS distance. Blank reads more cleanly than 0.00. |
 | "Don't summarize" aggregation for CTL/ATL fields | Prevents inflated values if the date hierarchy groups at month level rather than day level. |
+| Sport mapping in Power Query, not DB | training + fitness_equipment → Strength handled in Power Query. DB stays as raw ingested data. |
+| `_c: In 16W Window` column, not relative date filter | Relative date filters on a weekly chart act on the axis field (End of Week). Since this week's Sunday is in the future, it gets excluded. Filtering by the underlying Date column fixes this. |
+| `Dates[maxDate]` = TODAY() | Extends the calendar to today so PMC and weekly charts don't have a trailing gap on rest days. |
