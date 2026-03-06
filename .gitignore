@@ -43,3 +43,14 @@ db/training.db
 .venv/
 venv/
 
+# Compiled bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+############################
+# Exports
+############################
+
+data/export/*
+
