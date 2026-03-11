@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import sqlite3
 import statistics
 
+from db import sync_sports_from_activities
+
 # ============================
 # Parameterised Model Constants
 # ============================
@@ -163,5 +165,6 @@ def rebuild_load_model(conn):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, all_rows)
     conn.commit()
+    sync_sports_from_activities(conn)
 
     print(f"Load model rebuild complete: {len(per_sport_loads)} sport(s) + 'all', {len(all_rows)} rows.")

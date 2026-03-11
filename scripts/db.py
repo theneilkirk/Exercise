@@ -21,6 +21,13 @@ def init_db(db_path: Path):
         );
     """)
 
+    # Sports lookup table (canonical list of sport strings seen in activities)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sports (
+            sport TEXT PRIMARY KEY
+        );
+    """)
+
     # Activities table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS activities (
@@ -128,12 +135,31 @@ def init_db(db_path: Path):
     # --------------------------------------------------
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS activity_hr_zone_summary (
-        activity_id TEXT NOT NULL,
-        zone TEXT NOT NULL,
+        activity_id     TEXT NOT NULL,
+        zone            TEXT NOT NULL,
+        sport           TEXT NOT NULL,
         seconds_in_zone INTEGER NOT NULL,
-        PRIMARY KEY (activity_id, zone)
+        PRIMARY KEY (activity_id, zone),
+        FOREIGN KEY (activity_id) REFERENCES activities (activity_id) ON DELETE CASCADE
     );
     """)
 
+    # Migration: add sport column to existing activity_hr_zone_summary tables
+    try:
+        cursor.execute(
+            "ALTER TABLE activity_hr_zone_summary ADD COLUMN sport TEXT NOT NULL DEFAULT 'unknown'"
+        )
+        conn.commit()
+    except Exception:
+        pass  # column already exists
+
     conn.commit()
     conn.close()
+
+
+def sync_sports_from_activities(conn):
+    """Populate the sports table from all distinct sports in activities."""
+    conn.execute(
+        "INSERT OR IGNORE INTO sports (sport) SELECT DISTINCT sport FROM activities"
+    )
+    conn.commit()

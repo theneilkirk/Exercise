@@ -254,14 +254,14 @@ def insert_activity(conn, activity_id, activity):
     conn.commit()
 
 
-def insert_zone_summary(conn, activity_id, zone_seconds: dict):
+def insert_zone_summary(conn, activity_id, zone_seconds: dict, sport: str):
     cursor = conn.cursor()
     for zone, seconds in zone_seconds.items():
         cursor.execute("""
             INSERT INTO activity_hr_zone_summary
-            (activity_id, zone, seconds_in_zone)
-            VALUES (?, ?, ?)
-        """, (activity_id, zone, seconds))
+            (activity_id, zone, sport, seconds_in_zone)
+            VALUES (?, ?, ?, ?)
+        """, (activity_id, zone, sport, seconds))
     conn.commit()
 
 
@@ -315,7 +315,7 @@ def process_fit_file(conn, fit_path: Path):
     delete_existing_activity(conn, activity_id)
 
     insert_activity(conn, activity_id, activity)
-    insert_zone_summary(conn, activity_id, activity["zone_seconds"])
+    insert_zone_summary(conn, activity_id, activity["zone_seconds"], activity["sport"])
     insert_activity_metrics(conn, activity_id, activity["trimp_total"])
 
     insert_physiology_observed(

@@ -8,15 +8,15 @@ Theme file: `ultra-training-dark.json`
 
 ## Build Progress
 
-| # | Page | Status |
-|---|---|---|
-| — | Theme | ✅ Done |
-| 1 | Status Today | ✅ Done |
-| 2 | Performance Management (PMC) | ✅ Done |
-| 3 | Weekly Load | ✅ Done |
-| 4 | Zone Analysis | 🔲 Pending |
-| 5 | Activity Log | 🔲 Pending |
-| 6 | Physiology | 🔲 Pending (low priority) |
+| #   | Page                         | Status                    |
+| --- | ---------------------------- | ------------------------- |
+| —   | Theme                        | ✅ Done                    |
+| 1   | Status Today                 | ✅ Done                    |
+| 2   | Performance Management (PMC) | ✅ Done                    |
+| 3   | Weekly Load                  | ✅ Done                    |
+| 4   | Zone Analysis                | 🔲 Pending                |
+| 5   | Activity Log                 | 🔲 Pending                |
+| 6   | Physiology                   | 🔲 Pending (low priority) |
 
 ---
 
@@ -26,62 +26,62 @@ File: `ultra-training-dark.json` — import via View → Themes → Browse for t
 
 ### Palette
 
-| Role | Hex |
-|---|---|
-| Page background | `#0D1117` |
+| Role                    | Hex       |
+| ----------------------- | --------- |
+| Page background         | `#0D1117` |
 | Card / panel background | `#161B22` |
-| Card border (subtle) | `#30363D` |
-| Primary text | `#E6EDF3` |
+| Card border (subtle)    | `#30363D` |
+| Primary text            | `#E6EDF3` |
 | Secondary text / labels | `#8B949E` |
 
 ### Accent colours
 
-| Role | Hex |
-|---|---|
-| CTL / Fitness / primary | `#58A6FF` |
-| Positive / good / aerobic (Z2) | `#3FB950` |
-| Warning / amber (Z3) | `#D29922` |
-| Danger / overreached (Z5) | `#F85149` |
-| ATL / Fatigue / high load (Z4) | `#F0883E` |
+| Role                                | Hex       |
+| ----------------------------------- | --------- |
+| CTL / Fitness / primary             | `#58A6FF` |
+| Positive / good / aerobic (Z2)      | `#3FB950` |
+| Warning / amber (Z3)                | `#D29922` |
+| Danger / overreached (Z5)           | `#F85149` |
+| ATL / Fatigue / high load (Z4)      | `#F0883E` |
 | Fresh / neutral / undertrained (Z1) | `#79C0FF` |
 
 ### HR Zone colours
 
-| Zone | Name | Hex |
-|---|---|---|
-| Z1 | Recovery | `#4A9EFF` |
-| Z2 | Aerobic base | `#3FB950` |
-| Z3 | Tempo | `#D29922` |
-| Z4 | Threshold | `#F0883E` |
-| Z5 | VO2max / max | `#F85149` |
+| Zone | Name         | Hex       |
+| ---- | ------------ | --------- |
+| Z1   | Recovery     | `#4A9EFF` |
+| Z2   | Aerobic base | `#3FB950` |
+| Z3   | Tempo        | `#D29922` |
+| Z4   | Threshold    | `#F0883E` |
+| Z5   | VO2max / max | `#F85149` |
 
 ### Form status bands (CTL − ATL)
 
-| Form | State | Colour |
-|---|---|---|
-| < −30 | Very Fatigued | `#F85149` |
-| −30 to −10 | Building | `#F0883E` |
-| −10 to +5 | Optimal | `#3FB950` |
-| > +5 | Fresh | `#79C0FF` |
+| Form       | State         | Colour    |
+| ---------- | ------------- | --------- |
+| < −30      | Very Fatigued | `#F85149` |
+| −30 to −10 | Building      | `#F0883E` |
+| −10 to +5  | Optimal       | `#3FB950` |
+| > +5       | Fresh         | `#79C0FF` |
 
 ### AC Ratio bands (ultra-runner calibrated)
 
-| AC Ratio | State | Colour |
-|---|---|---|
-| < 0.8 | Detrained | `#79C0FF` |
-| 0.8 – 1.5 | Building well | `#3FB950` |
+| AC Ratio  | State               | Colour    |
+| --------- | ------------------- | --------- |
+| < 0.8     | Detrained           | `#79C0FF` |
+| 0.8 – 1.5 | Building well       | `#3FB950` |
 | 1.5 – 2.2 | High load — monitor | `#D29922` |
-| > 2.2 | Very high — risk | `#F85149` |
+| > 2.2     | Very high — risk    | `#F85149` |
 
 *Note: standard Gabbett (2016) threshold of 1.3 is not meaningful for ultra-marathon training. These ranges are calibrated to this athlete's data.*
 
 ### Ramp Rate bands (CTL change over 7 days)
 
-| \|ramp rate\| | State | Colour |
-|---|---|---|
-| ≤ 8 | Safe | `#3FB950` |
-| 8 – 15 | Elevated — monitor | `#D29922` |
-| > 15 | High risk | `#F85149` |
+| \|ramp rate\| | State              | Colour    |
+| ------------- | ------------------ | --------- |
+| ≤ 8           | Safe               | `#3FB950` |
+| 8 – 15        | Elevated — monitor | `#D29922` |
+| > 15          | High risk          | `#F85149` |
 
 ---
 
@@ -354,20 +354,20 @@ ADDCOLUMNS(
 
 Daily 60-second coach check-in.
 
-| Visual | x | y | w | h | Notes |
-|---|---|---|---|---|---|
-| Title textbox | 16 | 16 | 900 | 40 | "Status — Today", 18px bold |
-| Date card | 1064 | 16 | 200 | 40 | `_m: Today Date`, 13px muted |
-| Form Status card | 16 | 64 | 800 | 220 | `_m: Form Status Label`, bg conditional on `_m: Form Colour` |
-| AC Ratio gauge | 824 | 64 | 440 | 220 | Min=0, Max=3.0, no target line |
-| CTL card | 16 | 292 | 306 | 130 | `_m: Today CTL`, callout `#58A6FF` |
-| ATL card | 330 | 292 | 306 | 130 | `_m: Today ATL`, callout `#F0883E` |
-| Form card | 644 | 292 | 306 | 130 | `_m: Today Form`, callout conditional |
-| Ramp Rate card | 958 | 292 | 306 | 130 | `_m: Today Ramp Rate`, callout conditional |
-| Last 7 Days bars | 16 | 430 | 764 | 274 | Column chart, visual filter: last 7 days |
-| WTD Load card | 788 | 430 | 232 | 130 | `_m: WTD Load` |
-| Last Week card | 1028 | 430 | 236 | 130 | `_m: Last Week Load` |
-| Last Activity table | 788 | 568 | 476 | 136 | Top N=1 filter, no headers |
+| Visual              | x    | y   | w   | h   | Notes                                                        |
+| ------------------- | ---- | --- | --- | --- | ------------------------------------------------------------ |
+| Title textbox       | 16   | 16  | 900 | 40  | "Status — Today", 18px bold                                  |
+| Date card           | 1064 | 16  | 200 | 40  | `_m: Today Date`, 13px muted                                 |
+| Form Status card    | 16   | 64  | 800 | 220 | `_m: Form Status Label`, bg conditional on `_m: Form Colour` |
+| AC Ratio gauge      | 824  | 64  | 440 | 220 | Min=0, Max=3.0, no target line                               |
+| CTL card            | 16   | 292 | 306 | 130 | `_m: Today CTL`, callout `#58A6FF`                           |
+| ATL card            | 330  | 292 | 306 | 130 | `_m: Today ATL`, callout `#F0883E`                           |
+| Form card           | 644  | 292 | 306 | 130 | `_m: Today Form`, callout conditional                        |
+| Ramp Rate card      | 958  | 292 | 306 | 130 | `_m: Today Ramp Rate`, callout conditional                   |
+| Last 7 Days bars    | 16   | 430 | 764 | 274 | Column chart, visual filter: last 7 days                     |
+| WTD Load card       | 788  | 430 | 232 | 130 | `_m: WTD Load`                                               |
+| Last Week card      | 1028 | 430 | 236 | 130 | `_m: Last Week Load`                                         |
+| Last Activity table | 788  | 568 | 476 | 136 | Top N=1 filter, no headers                                   |
 
 ---
 
@@ -375,23 +375,23 @@ Daily 60-second coach check-in.
 
 Long-term training load trends.
 
-| Visual | x | y | w | h | Notes |
-|---|---|---|---|---|---|
-| Title textbox | 16 | 16 | 800 | 36 | "Performance Management", 18px bold |
-| PMC combo chart | 16 | 60 | 1248 | 440 | See series table below |
-| Date range slicer | 16 | 508 | 1248 | 44 | Between style, Dates[Date] |
-| Ramp rate chart | 16 | 560 | 800 | 144 | ±8 green, ±15 amber constant lines |
-| Monotony card | 824 | 560 | 200 | 144 | `_m: Today Monotony`, conditional colour |
-| Strain card | 1032 | 560 | 232 | 144 | `_m: Today Strain`, muted grey |
+| Visual            | x    | y   | w    | h   | Notes                                    |
+| ----------------- | ---- | --- | ---- | --- | ---------------------------------------- |
+| Title textbox     | 16   | 16  | 800  | 36  | "Performance Management", 18px bold      |
+| PMC combo chart   | 16   | 60  | 1248 | 440 | See series table below                   |
+| Date range slicer | 16   | 508 | 1248 | 44  | Between style, Dates[Date]               |
+| Ramp rate chart   | 16   | 560 | 800  | 144 | ±8 green, ±15 amber constant lines       |
+| Monotony card     | 824  | 560 | 200  | 144 | `_m: Today Monotony`, conditional colour |
+| Strain card       | 1032 | 560 | 232  | 144 | `_m: Today Strain`, muted grey           |
 
 **PMC series:**
 
-| Series | Field | Type | Axis | Colour |
-|---|---|---|---|---|
-| CTL | `daily_metrics[ctl]` | Line | Primary | `#58A6FF` 3px |
-| ATL | `daily_metrics[atl]` | Line | Primary | `#F0883E` 2px |
-| CTL Season Best | `daily_metrics[ctl_season_best]` | Line | Primary | `#8B949E` 1px dotted |
-| Form | `_m: Form Bar` | Column | Secondary | Conditional → `_m: Form Bar Colour` |
+| Series          | Field                            | Type   | Axis      | Colour                              |
+| --------------- | -------------------------------- | ------ | --------- | ----------------------------------- |
+| CTL             | `daily_metrics[ctl]`             | Line   | Primary   | `#58A6FF` 3px                       |
+| ATL             | `daily_metrics[atl]`             | Line   | Primary   | `#F0883E` 2px                       |
+| CTL Season Best | `daily_metrics[ctl_season_best]` | Line   | Primary   | `#8B949E` 1px dotted                |
+| Form            | `_m: Form Bar`                   | Column | Secondary | Conditional → `_m: Form Bar Colour` |
 
 Secondary axis: min −60, max +40. Constant line at Form=0 (dashed, `#8B949E`).
 
@@ -401,38 +401,38 @@ Secondary axis: min −60, max +40. Constant line at Form=0 (dashed, `#8B949E`).
 
 Rolling load patterns by week and sport. 16-week rolling window.
 
-| Visual | x | y | w | h | Notes |
-|---|---|---|---|---|---|
-| Title textbox | 16 | 16 | 800 | 36 | "Weekly Load", 18px bold |
-| Weekly combo chart | 16 | 60 | 1248 | 350 | Stacked columns by sport + hours line |
-| 4W Current Load card | 16 | 418 | 302 | 130 | `_m: Load 4W Current`, Theme color 7 |
-| 4W Previous Load card | 326 | 418 | 302 | 130 | `_m: Load 4W Previous`, Theme color 8 |
-| 4W Change % card | 16 | 556 | 302 | 148 | `_m: Load 4W Change %`, conditional colour |
-| Avg Weekly Load card | 326 | 556 | 302 | 148 | `_m: Avg Weekly Load (16W)`, Theme color 8 |
-| Sport donut (4W) | 640 | 418 | 624 | 286 | Filtered to 4-week window |
+| Visual                | x   | y   | w    | h   | Notes                                      |
+| --------------------- | --- | --- | ---- | --- | ------------------------------------------ |
+| Title textbox         | 16  | 16  | 800  | 36  | "Weekly Load", 18px bold                   |
+| Weekly combo chart    | 16  | 60  | 1248 | 350 | Stacked columns by sport + hours line      |
+| 4W Current Load card  | 16  | 418 | 302  | 130 | `_m: Load 4W Current`, Theme color 7       |
+| 4W Previous Load card | 326 | 418 | 302  | 130 | `_m: Load 4W Previous`, Theme color 8      |
+| 4W Change % card      | 16  | 556 | 302  | 148 | `_m: Load 4W Change %`, conditional colour |
+| Avg Weekly Load card  | 326 | 556 | 302  | 148 | `_m: Avg Weekly Load (16W)`, Theme color 8 |
+| Sport donut (4W)      | 640 | 418 | 624  | 286 | Filtered to 4-week window                  |
 
 **Weekly combo chart series:**
 
-| Role | Field | Notes |
-|---|---|---|
-| X-axis | `Dates[End of Week]` | Sunday end of each ISO week |
-| Columns (stacked) | `activity_metrics[load_points]` | Per sport segment |
-| Column legend | `activities[sport]` | Power Query maps training+fitness_equipment → Strength |
-| Line | `_m: Weekly Hours` | Secondary axis, near-white (`#E6EDF3`) |
-| Tooltip | `_m: Week Total Load` | Shows week total across all sports |
+| Role              | Field                           | Notes                                                  |
+| ----------------- | ------------------------------- | ------------------------------------------------------ |
+| X-axis            | `Dates[End of Week]`            | Sunday end of each ISO week                            |
+| Columns (stacked) | `activity_metrics[load_points]` | Per sport segment                                      |
+| Column legend     | `activities[sport]`             | Power Query maps training+fitness_equipment → Strength |
+| Line              | `_m: Weekly Hours`              | Secondary axis, near-white (`#E6EDF3`)                 |
+| Tooltip           | `_m: Week Total Load`           | Shows week total across all sports                     |
 
 **Visual-level filter:** `Dates[_c: In 16W Window]` = TRUE
 *(Relative date filters act on the axis field and exclude the current partial week since Sunday is in the future. Filter on the underlying date column instead.)*
 
 **Sport colours:**
 
-| Sport | Theme name |
-|---|---|
-| Running | Theme color 7 |
-| Walking | Theme color 6 |
-| Cycling | Theme color 2 |
+| Sport    | Theme name    |
+| -------- | ------------- |
+| Running  | Theme color 7 |
+| Walking  | Theme color 6 |
+| Cycling  | Theme color 2 |
 | Strength | Theme color 3 |
-| Racket | Theme color 8 |
+| Racket   | Theme color 8 |
 
 ---
 
@@ -456,14 +456,14 @@ LTHR, HRmax, resting HR trends over time. *(Spec to be added when built.)*
 
 ## Design Decisions
 
-| Decision | Rationale |
-|---|---|
-| Dark theme | Consistent with elite sport tools (TrainingPeaks, WHOOP, Garmin). Data pops on dark backgrounds. |
-| AC ratio thresholds: 1.5 amber / 2.2 red | Gabbett's 1.3 is for general athletes. Ultra runners regularly and intentionally exceed 1.3 during training blocks. |
-| Ramp rate thresholds: ±8 green / ±15 amber | Methodology cites ±8 as the standard safe zone. ±15 extended ceiling for ultra training blocks and long runs. |
-| No target line on AC Ratio gauge | No meaningful single target value for ultra runners — depends on training phase. Colour zones alone are sufficient. |
-| `BLANK()` for zero distance | Strength/indoor activities have no GPS distance. Blank reads more cleanly than 0.00. |
-| "Don't summarize" aggregation for CTL/ATL fields | Prevents inflated values if the date hierarchy groups at month level rather than day level. |
-| Sport mapping in Power Query, not DB | training + fitness_equipment → Strength handled in Power Query. DB stays as raw ingested data. |
+| Decision                                             | Rationale                                                                                                                                                                                     |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dark theme                                           | Consistent with elite sport tools (TrainingPeaks, WHOOP, Garmin). Data pops on dark backgrounds.                                                                                              |
+| AC ratio thresholds: 1.5 amber / 2.2 red             | Gabbett's 1.3 is for general athletes. Ultra runners regularly and intentionally exceed 1.3 during training blocks.                                                                           |
+| Ramp rate thresholds: ±8 green / ±15 amber           | Methodology cites ±8 as the standard safe zone. ±15 extended ceiling for ultra training blocks and long runs.                                                                                 |
+| No target line on AC Ratio gauge                     | No meaningful single target value for ultra runners — depends on training phase. Colour zones alone are sufficient.                                                                           |
+| `BLANK()` for zero distance                          | Strength/indoor activities have no GPS distance. Blank reads more cleanly than 0.00.                                                                                                          |
+| "Don't summarize" aggregation for CTL/ATL fields     | Prevents inflated values if the date hierarchy groups at month level rather than day level.                                                                                                   |
+| Sport mapping in Power Query, not DB                 | training + fitness_equipment → Strength handled in Power Query. DB stays as raw ingested data.                                                                                                |
 | `_c: In 16W Window` column, not relative date filter | Relative date filters on a weekly chart act on the axis field (End of Week). Since this week's Sunday is in the future, it gets excluded. Filtering by the underlying Date column fixes this. |
-| `Dates[maxDate]` = TODAY() | Extends the calendar to today so PMC and weekly charts don't have a trailing gap on rest days. |
+| `Dates[maxDate]` = TODAY()                           | Extends the calendar to today so PMC and weekly charts don't have a trailing gap on rest days.                                                                                                |

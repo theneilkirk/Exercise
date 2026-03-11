@@ -267,9 +267,17 @@ def command_export():
     log(f"Export written to {out_path} ({len(markdown):,} bytes)")
 
 
-def command_reset():
-    """Wipe the database and move all archived FIT files back to the inbox."""
-    print("WARNING: This will delete the database and move all archived FIT files back to the inbox.")
+def command_reset(full=False):
+    """Clear activity data and move archived FIT files back to the inbox.
+
+    By default, physiology and HR zone config are preserved.
+    Pass full=True to wipe the entire database.
+    """
+    if full:
+        print("WARNING: This will delete the ENTIRE database including physiology and zone config.")
+    else:
+        print("WARNING: This will delete all activity data and metrics.")
+        print("         Physiology and HR zone config will be preserved.")
     confirm = input("Type YES to continue: ").strip()
     if confirm != "YES":
         print("Aborted.")
@@ -277,12 +285,22 @@ def command_reset():
 
     ensure_project_dirs()
 
-    if DB_PATH.exists():
-        print("Wiping database...")
-        DB_PATH.unlink()
-
-    print("Creating blank database schema...")
-    init_db(DB_PATH)
+    if full:
+        if DB_PATH.exists():
+            print("Wiping database...")
+            DB_PATH.unlink()
+        print("Creating blank database schema...")
+        init_db(DB_PATH)
+    else:
+        init_db(DB_PATH)  # ensures schema is current (no-op if tables exist)
+        conn = get_connection(DB_PATH)
+        print("Clearing activity and metrics tables...")
+        cursor = conn.cursor()
+        for table in ("daily_metrics", "activity_hr_zone_summary",
+                      "activity_metrics", "activities", "sports"):
+            cursor.execute(f"DELETE FROM {table}")
+        conn.commit()
+        conn.close()
 
     print("Restoring archived FIT files to inbox...")
     moved = 0
@@ -297,10 +315,14 @@ def command_reset():
     print(f"Restored {moved} file(s).")
 
     print()
-    print("Reset complete. To restore your data:")
-    print("  1. Restore physiology:  python scripts/cli.py update-physiology")
-    print("  2. Restore HR zones:    python scripts/cli.py set-zones")
-    print("  3. Re-ingest:           python scripts/cli.py sync")
+    if full:
+        print("Reset complete. To restore your data:")
+        print("  1. Restore physiology:  python scripts/cli.py update-physiology")
+        print("  2. Restore HR zones:    python scripts/cli.py set-zones")
+        print("  3. Re-ingest:           python scripts/cli.py sync")
+    else:
+        print("Reset complete. Re-ingest your data:")
+        print("  python scripts/cli.py sync")
 
 
 def main():
@@ -313,7 +335,8 @@ commands:
   recalculate         recompute ATL/CTL/form without re-reading FIT files
   update-physiology   record new HRmax/LTHR/HRrest with an effective date
   set-zones           add or update HR zone boundaries
-  reset               wipe the database and restore archived FITs to inbox
+  reset               clear activity data, restore archived FITs to inbox (preserves physiology/zones)
+  reset --full        wipe the entire database including physiology and zone config
   export              export training data to Markdown for AI coaching
                         [--weeks N] [--output PATH]
 """,
@@ -322,6 +345,11 @@ commands:
         "command",
         choices=["sync", "recalculate", "update-physiology", "set-zones", "reset", "export"],
         help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="(reset only) wipe the entire database including physiology and zone config",
     )
 
     args = parser.parse_args()
@@ -335,7 +363,7 @@ commands:
     elif args.command == "update-physiology":
         command_update_physiology()
     elif args.command == "reset":
-        command_reset()
+        command_reset(full=args.full)
     elif args.command == "export":
         command_export()
 
