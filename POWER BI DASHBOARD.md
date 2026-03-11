@@ -14,7 +14,7 @@ Theme file: `ultra-training-dark.json`
 | 1   | Status Today                 | ✅ Done                    |
 | 2   | Performance Management (PMC) | ✅ Done                    |
 | 3   | Weekly Load                  | ✅ Done                    |
-| 4   | Zone Analysis                | 🔲 Pending                |
+| 4   | Zone Analysis                | ✅ Done                    |
 | 5   | Activity Log                 | 🔲 Pending                |
 | 6   | Physiology                   | 🔲 Pending (low priority) |
 
@@ -436,9 +436,181 @@ Rolling load patterns by week and sport. 16-week rolling window.
 
 ---
 
-### Page 4 — Zone Analysis 🔲
+### Page 4 — Zone Analysis ✅
 
-HR zone distribution and training intensity quality. *(Spec to be added when built.)*
+HR zone distribution and training intensity quality. Answers: "Is my training polarized? Am I doing enough easy work?"
+
+#### Prerequisite — Model Relationship
+
+In Model view, add a relationship if not already present:
+
+| Setting | Value |
+| --- | --- |
+| From | `activities[activity_id]` |
+| To | `activity_hr_zone_summary[activity_id]` |
+| Cardinality | One-to-many |
+| Cross-filter direction | Single (activities → zone summary) |
+
+This allows `Dates[_c: In 16W Window]` to propagate through `activities` into `activity_hr_zone_summary`.
+
+#### DAX Measures
+
+All measures in the `activity_hr_zone_summary` table.
+
+```dax
+_m: Zone Hours Total =
+DIVIDE(SUM(activity_hr_zone_summary[seconds_in_zone]), 3600)
+```
+
+```dax
+_m: Z1 Hours =
+CALCULATE(
+    DIVIDE(SUM(activity_hr_zone_summary[seconds_in_zone]), 3600),
+    activity_hr_zone_summary[zone] = "Z1"
+)
+```
+
+```dax
+_m: Z2 Hours =
+CALCULATE(
+    DIVIDE(SUM(activity_hr_zone_summary[seconds_in_zone]), 3600),
+    activity_hr_zone_summary[zone] = "Z2"
+)
+```
+
+```dax
+_m: Z3 Hours =
+CALCULATE(
+    DIVIDE(SUM(activity_hr_zone_summary[seconds_in_zone]), 3600),
+    activity_hr_zone_summary[zone] = "Z3"
+)
+```
+
+```dax
+_m: Z4 Hours =
+CALCULATE(
+    DIVIDE(SUM(activity_hr_zone_summary[seconds_in_zone]), 3600),
+    activity_hr_zone_summary[zone] = "Z4"
+)
+```
+
+```dax
+_m: Z5 Hours =
+CALCULATE(
+    DIVIDE(SUM(activity_hr_zone_summary[seconds_in_zone]), 3600),
+    activity_hr_zone_summary[zone] = "Z5"
+)
+```
+
+```dax
+_m: Z3 Pct =
+DIVIDE([_m: Z3 Hours], [_m: Zone Hours Total])
+```
+
+```dax
+_m: Z3 Colour =
+IF([_m: Z3 Pct] <= 0.10, "#3FB950",
+IF([_m: Z3 Pct] <= 0.20, "#D29922",
+                          "#F85149"))
+```
+
+```dax
+_m: Polarization Index =
+DIVIDE(
+    [_m: Z1 Hours] + [_m: Z2 Hours],
+    [_m: Zone Hours Total]
+)
+```
+
+```dax
+_m: Polarization Index Label =
+VAR _pi = [_m: Polarization Index]
+RETURN
+SWITCH(
+    TRUE(),
+    _pi >= 0.75, "Polarized",
+    _pi >= 0.60, "Moderate",
+    "Too Intense"
+)
+```
+
+```dax
+_m: Polarization Index Colour =
+VAR _pi = [_m: Polarization Index]
+RETURN
+IF(_pi >= 0.75, "#3FB950",
+IF(_pi >= 0.60, "#D29922",
+                "#F85149"))
+```
+
+#### Visual Layout
+
+| # | Visual | x | y | w | h | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Title textbox | 16 | 16 | 900 | 36 | "Zone Analysis", 18px bold, `#E6EDF3` |
+| 2 | Subtitle textbox | 16 | 52 | 500 | 24 | "Last 16 weeks · filtered by sport", 12px `#8B949E` |
+| 3 | Sport slicer | 960 | 16 | 304 | 60 | Tile style, `activities[sport]`, multi-select with Select All |
+| 4 | Zone donut | 16 | 84 | 315 | 340 | % time per zone, 16W, legend off, 60% inner radius |
+| 5 | Polarization Index card | 339 | 84 | 260 | 160 | `_m: Polarization Index` as %, conditional callout colour |
+| 6 | Zone Hours Total card | 607 | 84 | 260 | 160 | `_m: Zone Hours Total`, `#58A6FF` callout, label "Total zone hours (16W)" |
+| 7 | Z3 warning card | 875 | 84 | 389 | 160 | `_m: Z3 Pct` as %, conditional callout via `_m: Z3 Colour`, sub-label "Target: <10%" |
+| 8 | Z1 card | 339 | 252 | 185 | 172 | `_m: Z1 Hours`, `#4A9EFF`, label "Z1 Recovery" |
+| 9 | Z2 card | 524 | 252 | 185 | 172 | `_m: Z2 Hours`, `#3FB950`, label "Z2 Aerobic base" |
+| 10 | Z3 card | 709 | 252 | 185 | 172 | `_m: Z3 Hours`, `#D29922`, label "Z3 Tempo" |
+| 11 | Z4 card | 894 | 252 | 185 | 172 | `_m: Z4 Hours`, `#F0883E`, label "Z4 Threshold" |
+| 12 | Z5 card | 1079 | 252 | 185 | 172 | `_m: Z5 Hours`, `#F85149`, label "Z5 VO2max" |
+| 14 | Weekly zone stacked bar | 16 | 432 | 1248 | 272 | Stacked columns by zone, 16W rolling |
+
+#### Visual Configurations
+
+**Visual 4 — Zone Donut**
+
+| Setting | Value |
+| --- | --- |
+| Legend | `activity_hr_zone_summary[zone]` |
+| Values | `_m: Zone Hours Total` |
+| Detail labels | Percentage, outside, `#E6EDF3`, 12px |
+| Legend toggle | Off |
+| Inner radius | 60% |
+| Visual-level filter | `Dates[_c: In 16W Window]` = TRUE |
+
+**Visual 14 — Weekly Zone Stacked Bar**
+
+| Setting | Value |
+| --- | --- |
+| X-axis | `Dates[End of Week]` |
+| Values | `_m: Zone Hours Total` |
+| Legend | `activity_hr_zone_summary[zone]` |
+| Y-axis title | "Hours" |
+| Tooltip (extra) | `_m: Polarization Index` |
+| Visual-level filter | `Dates[_c: In 16W Window]` = TRUE |
+
+Stack order is alphabetical by default (Z1 at base → Z5 at top) — correct, easy volume forms the structural base.
+
+**All visuals:** Background `#161B22`, border `#30363D` 1px, visual-level filter `Dates[_c: In 16W Window]` = TRUE.
+
+**Zone colour assignments** (set via Data colors in each visual, match by category value):
+
+| Category | Colour |
+| --- | --- |
+| Z1 | `#4A9EFF` |
+| Z2 | `#3FB950` |
+| Z3 | `#D29922` |
+| Z4 | `#F0883E` |
+| Z5 | `#F85149` |
+
+**Conditional colour pattern** (for PI card, Z3 card, status label card): Format → Callout value → Conditional formatting → Field value → select the corresponding `_m: … Colour` measure. The measure returns a hex string which Power BI applies directly.
+
+#### Build Order
+
+1. Add model relationship (prerequisite above)
+2. Create all DAX measures
+3. Build Visual 14 (stacked bar) — validates full data path end-to-end
+4. Build Visual 4 (donut) — validates percentage aggregation
+5. Build Visuals 5 and 7 (PI card, Z3 warning) — validates conditional colour measures
+6. Build Visuals 8–12 (per-zone hour cards, w=185)
+7. Add Visual 3 (sport slicer), confirm it filters all zone visuals
+8. Add Visuals 1–2 (title and subtitle textboxes)
 
 ---
 
@@ -467,3 +639,7 @@ LTHR, HRmax, resting HR trends over time. *(Spec to be added when built.)*
 | Sport mapping in Power Query, not DB                 | training + fitness_equipment → Strength handled in Power Query. DB stays as raw ingested data.                                                                                                |
 | `_c: In 16W Window` column, not relative date filter | Relative date filters on a weekly chart act on the axis field (End of Week). Since this week's Sunday is in the future, it gets excluded. Filtering by the underlying Date column fixes this. |
 | `Dates[maxDate]` = TODAY()                           | Extends the calendar to today so PMC and weekly charts don't have a trailing gap on rest days.                                                                                                |
+| PI threshold: 75% green / 60% amber / <60% red       | Seiler's polarized model targets ~80% Z1+Z2. 75% gives practical tolerance; 60% flags excessive tempo accumulation; below 60% is a clear warning.                                            |
+| Z3 warning card separate from per-zone cards         | Polarized training philosophy specifically targets Z3 minimization ("no man's land"). Isolating it with a conditional colour keeps it prominent rather than buried in the card row.           |
+| Sport slicer on `activities[sport]` (Page 4)         | Filter propagates to `activity_hr_zone_summary` via relationship, so running-only PI can be checked without contamination from strength sessions that carry no HR zone data.                  |
+| No date slicer on Zone Analysis page                 | The 16W rolling window is the analytically appropriate period for intensity distribution. Shorter windows amplify noise from single hard weeks; the fixed window is intentional.              |
